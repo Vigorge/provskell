@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="./mathquill-0.10.1/mathquill.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="./mathquill-0.10.1/mathquill.js"></script>
+<script>var MQ = MathQuill.getInterface(2)</script>
+</head>
+<body>
+	<h2>Provskell v0.0.1</h2>
+	<table border="0">
+	  <tr style="vertical-align:top">
+    	    <td>
+    	      <h3>Term Rewriting System:</h3>
+    	      <input type="button" value="Add rule" onclick="addRuleButton()">
+    	      <input type="button" value="Submit TRS" onclick="formulaInputButton()">
+    	    </td>
+    	    <td id="td_functions">
+    	    </td>
+    </tr>
+	  <tr style="vertical-align:top">
+    	<td>
+	      <ol id="rules" start="1">
+	      </ol>
+     	</td>
+    	<td>
+    	  <ol id="formulas" start="1">
+	      </ol>
+      </td>
+  	</tr>
+	</table>
+<script src="./util/message.js"></script>
+</body>

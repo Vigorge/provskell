@@ -1,0 +1,58 @@
+const http = require("http");
+const url = require('url');
+const { exec } = require('child_process');
+
+const host = 'localhost';
+const port = 8001;
+
+const requestListener = function (req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Content-Type", "application/json");
+
+  const _url = url.parse(req.url, true);
+  const msg = _url.query;
+  switch (_url.pathname) {
+    case "/trs":
+      exec(__dirname + `/haskell/check-trs ${msg['rules']}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`error: ${error.message}`);
+          return;
+        }
+
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          return;
+        }
+
+        res.writeHead(200);
+        res.end(stdout);
+
+        console.log(`stdout:\n${stdout}`);
+      });
+      break
+    case "/prove":
+      console.log(msg);
+      exec(__dirname + `/haskell/prove-termination ${msg['rules']} ${msg['funcs']}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`error: ${error.message}`);
+          return;
+        }
+
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          return;
+        }
+
+        res.writeHead(200);
+        res.end(stdout);
+
+        console.log(`stdout:\n${stdout}`);
+      });
+      break
+  }
+}
+
+const server = http.createServer(requestListener);
+server.listen(port, host, () => {
+    console.log(`Server is running on http://${host}:${port}`);
+});

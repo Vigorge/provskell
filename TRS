@@ -1,0 +1,8 @@
+TRS = { Func '=' Func ';' } .
+Func = Name [ '(' Func | 'x' ')' ]
+
+Funcs = { Func ';' } .
+Func = Name '(' Sign ')' '=' Expr .
+E = T { '+' T } .
+T = F { '*' F } .
+F = ( num | 'x' | '(' E ')' ) [ '^' '{' E '}' ].
