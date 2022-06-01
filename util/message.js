@@ -107,7 +107,7 @@ function formulaInputButton() {
     } else {
       TRS_changed = false;
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", 'http://localhost:8001/trs?' + rules_latex + '!\"', true);
+      xhr.open("POST", 'http://localhost:8002/trs?' + rules_latex + '!\"', true);
 
       xhr.onload = function() {
         var resp = JSON.parse(this.responseText);
@@ -186,7 +186,7 @@ function checkTerminationButton() {
       rules_latex = rules_latex + '!\"';
       funcs_latex = funcs_latex + '!\"';
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", 'http://localhost:8001/prove?' + rules_latex + '&' + funcs_latex, true);
+      xhr.open("POST", 'http://localhost:8002/prove?' + rules_latex + '&' + funcs_latex, true);
 
       xhr.onload = function() {
         var resp = JSON.parse(this.responseText);

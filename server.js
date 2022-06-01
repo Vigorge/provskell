@@ -3,7 +3,7 @@ const url = require('url');
 const { exec } = require('child_process');
 
 const host = 'localhost';
-const port = 8001;
+const port = 8002;
 
 const requestListener = function (req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -32,7 +32,7 @@ const requestListener = function (req, res) {
       break
     case "/prove":
       console.log(msg);
-      exec(__dirname + `/haskell/prove-termination ${msg['rules']} ${msg['funcs']}`, (error, stdout, stderr) => {
+      exec(__dirname + `/haskell/provskell-exe ${msg['rules']} ${msg['funcs']}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`);
           return;
