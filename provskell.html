@@ -6,20 +6,26 @@
 <script>var MQ = MathQuill.getInterface(2)</script>
 </head>
 <body>
-	<h2>Provskell v0.0.1</h2>
-	<table border="0">
+	<h2 align="center">Provskell v0.0.1</h2>
+	<table border="0" style="table-layout: fixed; width: 100%">
+		<colgroup>
+			<col span="1" style="table-layout: fixed; width: 25%;">
+			<col span="1" style="table-layout: fixed; width: 25%;">
+			<col span="1" style="table-layout: fixed; width: 50%;">
+	  </colgroup>
+
 	  <tr style="vertical-align:top">
-    	    <td>
-    	      <h3>Term Rewriting System:</h3>
-    	      <input type="button" value="Submit TRS" onclick="formulaInputButton()">
-						<div>Parametrs: { <span class="mq-params" id="rules-sign-math-field"></span> }</div>
-    	    </td>
-    	    <td id="td_functions">
-    	    </td>
+    	<td>
+        <h3>Term Rewriting System:</h3>
+        <input type="button" value="Submit TRS" onclick="formulaInputButton()">
+				<div style="font-size:20px">Parametrs: { <span style="font-size:16px" class="mq-params" id="rules-sign-math-field"></span> }</div>
+      </td>
+      <td id="td_functions">
+      </td>
     </tr>
 	  <tr style="vertical-align:top">
     	<td>
-	      <ol id="rules" start="1">
+	      <ol style="overflow:auto;height:200px" id="rules" start="1">
 	      </ol>
      	</td>
     	<td>
@@ -27,6 +33,14 @@
 	      </ol>
       </td>
   	</tr>
+		<tr style="vertical-align:top">
+			<td>
+				<h3>Ordinal Calculator:</h3>
+				<button id="add-omega-calc">ω</button>
+				<span style="overflow:auto;width:60%;font-size:20px" class="mq-calc" id="calc-math-field"></span>
+				<div style="font-size:20px"> = <span id="calc-result-math-field"></span></div>
+			</td>
+		</tr>
 	</table>
 </body>
 <script src="./util/message.js"></script>

@@ -9,6 +9,7 @@ import Text.TeXMath.Readers.TeX
 import Text.TeXMath.Types as TXT
 import Data.Either
 import Data.String
+import Data.Set as Set hiding(null, map)
 import TRS
 import Omega
 import Data.List as List
@@ -27,6 +28,9 @@ instance ToJSON Output where
     object [ "errorsR" .= errors
            , "errorsF" .= dummy
     ]
+
+processProve :: [Rule] -> Map String Function -> Set String -> ByteString
+processProve rules funcs params = formOutput $ prove rules funcs $ Set.elems params
 
 formOutput :: [(Rule, Map String Integer, Omega, Omega)] -> ByteString
 formOutput rs = JSON.encode $ Output (getErrors rs) ""

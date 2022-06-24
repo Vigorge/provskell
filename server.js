@@ -50,6 +50,25 @@ const requestListener = function (req, res) {
         console.log(`stdout:\n${stdout}`);
       });
       break
+    case "/calc":
+      console.log(msg);
+      exec(__dirname + `/haskell/provskell-exe 2 ${msg['expr']}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`error: ${error.message}`);
+          return;
+        }
+
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          return;
+        }
+
+        res.writeHead(200);
+        res.end(stdout);
+
+        console.log(`stdout:\n${stdout}`);
+      });
+      break
   }
 }
 

@@ -2,8 +2,8 @@ module Functions
      ( Expr(..)
      , Function(..)
      , processF
+     , processInc
      , incorrect
-     , formOutput
      ) where
 
 import Data.Text as T hiding (tail, map, head, null, length)
@@ -54,7 +54,10 @@ instance ToJSON Output where
     object [ "errorsF" .= errors
            , "errorsR" .= dummy
     ]
-    
+ 
+processInc :: Map String Function -> ByteString
+processInc funcs = formOutput $ incorrect funcs
+   
 formOutput :: [(String, Function)] -> ByteString
 formOutput fs = JSON.encode $ Output (getErrors fs) ""
   where

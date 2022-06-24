@@ -1,32 +1,87 @@
-var TRS_changed = false;
+var TRS_changed  = false;
+var Calc_changed = false;
 var ruleCount = 0;
 var signMathFieldSpan = document.getElementById(`rules-sign-math-field`);
 var signMathFieldSpan = MQ.MathField(signMathFieldSpan, {spaceBehavesLikeTab: true});
 addRuleButton();
 
-window.addEventListener('beforeunload', function (e) {
-    e.preventDefault();
-    e.returnValue = 'Do you want to leave the page?';
-    setTimeout(function () { // Timeout to wait for user response
-        setTimeout(function () { // Timeout to wait onunload, if not fired then this will be executed
-            console.log('User stayed on the page.');
-    }, 50)}, 50);
-    return 'Do you want to leave the page?';
-});
+// window.addEventListener('beforeunload', function (e) {
+//     e.preventDefault();
+//     e.returnValue = 'Do you want to leave the page?';
+//     setTimeout(function () { // Timeout to wait for user response
+//         setTimeout(function () { // Timeout to wait onunload, if not fired then this will be executed
+//             console.log('User stayed on the page.');
+//     }, 50)}, 50);
+//     return 'Do you want to leave the page?';
+// });
+
+initCalc();
+
+function initCalc() {
+  var mathFieldSpan = document.getElementById('calc-math-field');
+  var mathField = MQ.MathField(mathFieldSpan, {
+    spaceBehavesLikeTab: true,
+    handlers: {
+      edit: function() {
+        Calc_changed = true;
+        var resLatex = document.getElementById("calc-result-math-field");
+        resLatex.textContent="";
+      },
+      enter: function() {
+        if (Calc_changed) {
+          calc();
+        }
+      },
+    }
+  });
+  mathField.focus();
+
+  document.getElementById("add-omega-calc").onmousedown = function () {
+    event.preventDefault();
+    var elements = document.getElementsByClassName("mq-focused");
+    if (elements[0].classList.contains("mq-calc")) {
+      var editable = MQ(elements[0]);
+      editable.cmd("\\omega");
+    }
+  };
+}
+
+function calc() {
+  var calc =  MQ(document.getElementById("calc-math-field"));
+  var latexCalc = calc.latex();
+  latexCalc = encodeURIComponent(latexCalc);
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", 'http://localhost:8002/calc?expr=\"' + latexCalc + '!\"', true);
+
+  xhr.onload = function() {
+    var resp = JSON.parse(this.responseText);
+    if (resp['errors'] != '') {
+      alert(resp.errors);
+    } else {
+      var res = resp['result'];
+      var resLatex = document.getElementById("calc-result-math-field");
+      resLatex.textContent=res;
+      var calcField = MQ.StaticMath(resLatex);
+      calcField.reflow();
+    }
+  };
+
+  xhr.send();
+}
 
 function createRule(elemId) {
   var container = document.createElement('div');
-  container.innerHTML = `<li id = "rule-${elemId}">
-    <input class="formula-delete" type="button" value="X"/> Rule: <span class="mq-rule" id="rule-math-field-${elemId}"></span>
+  container.innerHTML = `<li style="font-size:20px" id = "rule-${elemId}">
+    <input class="formula-delete" type="button" value="X"/> Rule: <span style="overflow:auto;width:60%;font-size:16px" class="mq-rule" id="rule-math-field-${elemId}"></span>
     </li>`
   return container.firstChild
 }
 
 function createFormula(elemId, arity) {
   var container = document.createElement('div');
-  var param = arity === 0 ? '' : `( <span class="mq-args" id="formula-sign-math-field-${elemId}"></span> )`
-  container.innerHTML = `<li id = "func-${elemId}">
-    ${elemId}${param} = <span class="mq-func" id="formula-math-field-${elemId}"></span>
+  var param = arity === 0 ? '' : `( <span style="overflow:auto;width:10%;font-size:16px" class="mq-args" id="formula-sign-math-field-${elemId}"></span> )`
+  container.innerHTML = `<li style="font-size:20px" id = "func-${elemId}">
+    ${elemId}${param} = <span style="overflow:auto;width:60%;font-size:16px" class="mq-func" id="formula-math-field-${elemId}"></span>
   </li>`
 
   return container.firstChild
@@ -43,7 +98,10 @@ function createFuncHeader() {
 function addDeleteOnClick(ruleElem) {
   var input = ruleElem.getElementsByTagName('INPUT')[0];
   input.onclick = function() {
-    ruleElem.parentNode.removeChild(ruleElem)
+    var l = document.getElementById('rules').children.length;
+    if (l > 1) {
+      ruleElem.parentNode.removeChild(ruleElem);
+    }
   }
 }
 

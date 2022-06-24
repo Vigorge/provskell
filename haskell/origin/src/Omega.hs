@@ -1,4 +1,4 @@
-module Omega(Omega(..), Tower(..), w, (^), showCNF, unfold, isTower) where
+module Omega(Omega(..), Tower(..), w, (^), showCNF, unfold, isTower, latex) where
 
 import Data.List
 import Prelude hiding (exponent,(^))
@@ -125,19 +125,18 @@ instance Num Omega where
 
 instance Ord Omega where
     compare = cnfCompare
-    
+
 isTower :: Omega -> Bool
 isTower (CNFPowerSum [Term (CNFPowerSum[]) 1]) = True
 isTower (CNFPowerSum [Term a 1])               = isTower a
 isTower _                                      = False
 
-showTower :: Omega -> String
-showTower a = "w↑" ++ show (height a)
-  where
-    height :: Omega -> Integer
-    height (CNFPowerSum[]) = 0
-    height (CNFPowerSum [Term a 1]) = 1 + height a
+getHeight :: Omega -> Integer
+getHeight (CNFPowerSum[]) = 0
+getHeight (CNFPowerSum [Term a _]) = 1 + getHeight a
 
+showTower :: Omega -> String
+showTower a = "w↑" ++ show (getHeight a)
 
 showT :: Term -> String
 showT (Term (CNFPowerSum[]) n) = show n
@@ -154,6 +153,23 @@ showCNF (CNFPowerSum[]) = "0"
 showCNF (CNFPowerSum terms) = 
     intercalate " + " [
         showT t | t <- terms
+      ]
+
+latexT :: Term -> String
+latexT (Term (CNFPowerSum[]) n) = show n
+latexT (Term (CNFPowerSum [Term (CNFPowerSum[]) 1]) 1) = "\\omega"
+latexT (Term (CNFPowerSum [Term (CNFPowerSum [Term (CNFPowerSum[]) 1]) 1]) 1) = "\\omega^{\\omega}"
+latexT (Term (CNFPowerSum [Term (CNFPowerSum[]) n]) 1) = "\\omega^" ++ show n
+latexT (Term (CNFPowerSum [Term (CNFPowerSum[]) 1]) k) = "\\omega\\cdot" ++ show k
+latexT (Term (CNFPowerSum [Term (CNFPowerSum[]) n]) k) = "\\omega^" ++ show n ++ "\\cdot " ++ show k
+latexT (Term a 1) = if isTower a then "\\omega\\uparrow^" ++ show (getHeight a) else "\\omega^{" ++ latex a ++ "}"
+latexT (Term a n) = "\\omega^{" ++ latex a ++ "}\\cdot " ++ show n
+
+latex :: Omega -> String
+latex (CNFPowerSum[]) = "0"
+latex (CNFPowerSum terms) =
+    intercalate " + " [
+        latexT t | t <- terms
       ]
 
 instance Show Omega where
