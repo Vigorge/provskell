@@ -1,60 +1,33 @@
 var TRS_changed = false;
+var ruleCount = 0;
+var signMathFieldSpan = document.getElementById(`rules-sign-math-field`);
+var signMathFieldSpan = MQ.MathField(signMathFieldSpan, {spaceBehavesLikeTab: true});
+addRuleButton();
 
-function insertSqrt() {
-    var MQ = MathQuill.getInterface(2);
-    var elements = document.getElementsByClassName("mq-focused");
-    var editable = MQ(elements[0]);
-    editable.write("\\sqrt");
-}
+window.addEventListener('beforeunload', function (e) {
+    e.preventDefault();
+    e.returnValue = 'Do you want to leave the page?';
+    setTimeout(function () { // Timeout to wait for user response
+        setTimeout(function () { // Timeout to wait onunload, if not fired then this will be executed
+            console.log('User stayed on the page.');
+    }, 50)}, 50);
+    return 'Do you want to leave the page?';
+});
 
 function createRule(elemId) {
   var container = document.createElement('div');
-
-  container.innerHTML = `<li><div>
-    <p>Rule: <span id="rule-math-field-${elemId}"></span></p>
-    <p>LaTeX: <span id="rule-latex-${elemId}"></span></p>
-    <input class="formula-delete" type="button" value="remove"/>
-  </div></li>`
-
+  container.innerHTML = `<li id = "rule-${elemId}">
+    <input class="formula-delete" type="button" value="X"/> Rule: <span class="mq-rule" id="rule-math-field-${elemId}"></span>
+    </li>`
   return container.firstChild
-}
-
-function addDeleteOnClick(ruleElem) {
-  var input = ruleElem.getElementsByTagName('INPUT')[0];
-  input.onclick = function() {
-    ruleElem.parentNode.removeChild(ruleElem)
-  }
-}
-
-function addRuleButton() {
-  var rules = document.getElementById('rules');
-  var elemId = rules.getElementsByTagName('li').length;
-  var ruleElem = createRule(elemId);
-
-  rules.appendChild(ruleElem);
-  addDeleteOnClick(ruleElem);
-
-  var mathFieldSpan = document.getElementById(`rule-math-field-${elemId}`);
-  var latexSpan = document.getElementById(`rule-latex-${elemId}`);
-
-  var mathField = MQ.MathField(mathFieldSpan, {
-    spaceBehavesLikeTab: true,
-    handlers: {
-      edit: function() {
-        latexSpan.textContent = mathField.latex();
-        TRS_changed = true;
-      }
-    }
-  });
 }
 
 function createFormula(elemId, arity) {
   var container = document.createElement('div');
-  var param = arity === 1 ? '(x)' : ''
-  container.innerHTML = `<li><div>
-    <p>${elemId}${param} = <span class="mq-func" id="formula-math-field-${elemId}"></span></p>
-    <p>LaTeX: <span id="formula-latex-${elemId}"></span></p>
-  </div></li>`
+  var param = arity === 0 ? '' : `( <span class="mq-args" id="formula-sign-math-field-${elemId}"></span> )`
+  container.innerHTML = `<li id = "func-${elemId}">
+    ${elemId}${param} = <span class="mq-func" id="formula-math-field-${elemId}"></span>
+  </li>`
 
   return container.firstChild
 }
@@ -67,38 +40,130 @@ function createFuncHeader() {
   return
 }
 
-function addMQ(id) {
-    var mathFieldSpan = document.getElementById(`formula-math-field-${id}`);
-    var latexSpan = document.getElementById(`formula-latex-${id}`);
+function addDeleteOnClick(ruleElem) {
+  var input = ruleElem.getElementsByTagName('INPUT')[0];
+  input.onclick = function() {
+    ruleElem.parentNode.removeChild(ruleElem)
+  }
+}
 
+function addRuleButton() {
+  var rules = document.getElementById('rules');
+  var elemId = ruleCount;
+  ruleCount += 1;
+  var ruleElem = createRule(elemId);
+
+  rules.appendChild(ruleElem);
+  addDeleteOnClick(ruleElem);
+
+  var mathFieldSpan = document.getElementById(`rule-math-field-${elemId}`);
+  var mathField = MQ.MathField(mathFieldSpan, {
+    spaceBehavesLikeTab: true,
+    handlers: {
+      edit: function() {
+        TRS_changed = true;
+      },
+      enter: function() {
+        addRuleButton();
+      },
+      upOutOf: function(mathField) {
+        var rules = Array.prototype.slice.call(document.getElementById('rules').children);
+        var liRef = document.getElementById(`rule-${elemId}`);
+        var index = rules.indexOf(liRef);
+        var id = (index > 0) ? index - 1 : rules.length - 1;
+        var upField = MQ((rules[id].getElementsByClassName("mq-rule"))[0]);
+        upField.focus();
+      },
+      downOutOf: function(mathField) {
+        var rules = Array.prototype.slice.call(document.getElementById('rules').children);
+        var liRef = document.getElementById(`rule-${elemId}`);
+        var index = rules.indexOf(liRef);
+        var id = (index < rules.length - 1) ? index + 1 : 0;
+        var upField = MQ((rules[id].getElementsByClassName("mq-rule"))[0]);
+        upField.focus();
+      }
+    }
+  });
+
+  mathField.focus();
+}
+
+function addMQ(elemId) {
+    var mathFieldSpan = document.getElementById(`formula-math-field-${elemId}`);
     var mathField = MQ.MathField(mathFieldSpan, {
       spaceBehavesLikeTab: true,
       handlers: {
-        edit: function() {
-          latexSpan.textContent = mathField.latex();
+        upOutOf: function(mathField) {
+          var rules = Array.prototype.slice.call(document.getElementById('formulas').children);
+          var liRef = document.getElementById(`func-${elemId}`);
+          var index = rules.indexOf(liRef);
+          var id = (index > 0) ? index - 1 : rules.length - 1;
+          var upField = MQ((rules[id].getElementsByClassName("mq-func"))[0]);
+          upField.focus();
+        },
+        downOutOf: function(mathField) {
+          var rules = Array.prototype.slice.call(document.getElementById('formulas').children);
+          var liRef = document.getElementById(`func-${elemId}`);
+          var index = rules.indexOf(liRef);
+          var id = (index < rules.length - 1) ? index + 1 : 0;
+          var upField = MQ((rules[id].getElementsByClassName("mq-func"))[0]);
+          upField.focus();
+        },
+        moveOutOf: function(direction) {
+          if (direction == MQ.L) {
+            var rules = Array.prototype.slice.call(document.getElementById('formulas').children);
+            var liRef = document.getElementById(`func-${elemId}`);
+            var index = rules.indexOf(liRef);
+            var upField = MQ((rules[index].getElementsByClassName("mq-args"))[0]);
+            if (upField){
+              upField.focus();
+            }
+          }
+        }
+      }
+    });
+    var signMathFieldSpan = document.getElementById(`formula-sign-math-field-${elemId}`);
+    var signMathFieldSpan = MQ.MathField(signMathFieldSpan, {
+      spaceBehavesLikeTab: true,
+      handlers: {
+        moveOutOf: function(direction) {
+          if (direction == MQ.R) {
+            var rules = Array.prototype.slice.call(document.getElementById('formulas').children);
+            var liRef = document.getElementById(`func-${elemId}`);
+            var index = rules.indexOf(liRef);
+            var upField = MQ((rules[index].getElementsByClassName("mq-func"))[0]);
+            upField.focus();
+          }
         }
       }
     });
 }
 
 function formulaInputButton() {
-  var rules = document.getElementById('rules');
-  var rules_lenght = rules.getElementsByTagName('li').length;
+  var rules = document.getElementById('rules').getElementsByTagName('li');
+  var rules_lenght = rules.length;
 
   var formulas = document.getElementById('formulas');
   formulas.innerHTML = '';
 
+  var params =  MQ((document.getElementsByClassName("mq-params"))[0]);
+  var latexParams = params.latex();
+  if (/[^a-zA-Z,\\]/i.test(latexParams)) {
+    alert(`parametrs has forbidden symbols`);
+    return;
+  }
+  var rules_latex = '\\left\\{' + latexParams + '\\right\\}';
+
   if (rules_lenght > 0) {
     var inc_rules = [];
-    var rules_latex = 'rules=\"';
-
     for (let i = 0; i < rules_lenght; i++) {
-      var rule = MQ(document.getElementById(`rule-math-field-${i}`));
-      var latex = rule.latex();
-      if (/[^a-zA-Z\(\)\\\=]/i.test(latex) || latex.includes('\\omega')) {
+      var rule = MQ((rules[i].getElementsByClassName("mq-rule"))[0]);
+      var latexRule = rule.latex();
+      var latexParams = params.latex();
+      if (/[^a-zA-Z,\(\)\\\=]/i.test(latexRule)) {
       	inc_rules.push(i+1);
       } else {
-        rules_latex = rules_latex + encodeURIComponent(latex + ';');
+        rules_latex = rules_latex + latexRule + ';';
       }
     }
 
@@ -106,8 +171,9 @@ function formulaInputButton() {
       alert(`rules: ${inc_rules}\nhas forbidden symbols`);
     } else {
       TRS_changed = false;
+      rules_latex = encodeURIComponent(rules_latex);
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", 'http://localhost:8002/trs?' + rules_latex + '!\"', true);
+      xhr.open("POST", 'http://localhost:8002/trs?rules=\"' + rules_latex + '!\"', true);
 
       xhr.onload = function() {
         var resp = JSON.parse(this.responseText);
@@ -118,12 +184,13 @@ function formulaInputButton() {
 
           createFuncHeader();
 
-
           document.getElementById("add-omega").onmousedown = function () {
             event.preventDefault();
             var elements = document.getElementsByClassName("mq-focused");
-            var editable = MQ(elements[0]);
-            editable.cmd("\\omega");
+            if (elements[0].classList.contains("mq-func")) {
+              var editable = MQ(elements[0]);
+              editable.cmd("\\omega");
+            }
           };
 
           for (var prop in funcs) {
@@ -149,48 +216,56 @@ function checkTerminationButton() {
     return;
   }
 
-  var rules = document.getElementById('rules');
-  var rules_lenght = rules.getElementsByTagName('li').length;
+  var params =  MQ((document.getElementsByClassName("mq-params"))[0]);
+  var latexParams = params.latex();
+  if (/[^a-zA-Z,\\]/i.test(latexParams)) {
+    alert(`parametrs has forbidden symbols`);
+    return;
+  }
+  var rules_latex = '\\left\\{' + latexParams + '\\right\\}';
+
+  var rules = document.getElementById('rules').getElementsByTagName('li');
+  var rules_lenght = rules.length;
 
   if (rules_lenght > 0) {
-    var rules_latex = 'rules=\"';
 
     for (let i = 0; i < rules_lenght; i++) {
-      var rule = MQ(document.getElementById(`rule-math-field-${i}`));
+      var rule = MQ((rules[i].getElementsByClassName("mq-rule"))[0]);
       var latex = rule.latex();
-      rules_latex = rules_latex + encodeURIComponent(latex + ';');
+      rules_latex = rules_latex + latex + ';';
     }
 
     var inc_funcs = [];
-    var funcs_latex = 'funcs=\"';
+    var funcs_latex = '';
 
-    var funcs = document.getElementsByClassName("mq-func");
+    var funcs = document.getElementById('formulas').getElementsByTagName('li');
     for (let i = 0; i < funcs.length; i++) {
-      var func = MQ(funcs[i]);
-      var f_name = funcs[i].id.substr(19);
-      var latex = func.latex();
-      if (latex === '') {
+      var func = MQ(funcs[i].getElementsByClassName("mq-func")[0]);
+      var f_name = funcs[i].getElementsByClassName("mq-func")[0].id.substr(19);
+      var latex_func = func.latex();
+      var sign = MQ(funcs[i].getElementsByClassName("mq-args")[0]);
+      var latex_sign = (sign != null) ? sign.latex() : '';
+      if (latex_func === '') {
         alert(`Please, declare function ${f_name}`);
         return;
       }
-      if (/[\^\{\}\(\)\\x0-9 ]|(\\omega)|(\\cdot)/.test(latex)) {
-        funcs_latex = funcs_latex + encodeURIComponent(f_name + '=' + latex + ';');
+      if (/[\^\{\}\(\)\\x0-9 ]|(\\omega)|(\\cdot)/.test(latex) || /[^a-zA-Z,\\]/i.test(latex_sign)) {
+        funcs_latex = funcs_latex + f_name + '\\left(' + latex_sign + '\\right)' + '=' + latex_func + ';';
       } else {
         inc_funcs.push(f_name);
       }
     }
 
     if (inc_funcs.length > 0) {
-      alert(`Functions: ${inc_funcs}\nhas forbidden symbols`);
+      alert(`Functions: ${inc_funcs}\n or its' signatures has forbidden symbols`);
     } else {
-      rules_latex = rules_latex + '!\"';
-      funcs_latex = funcs_latex + '!\"';
+      rules_latex = 'rules=\"' + encodeURIComponent(rules_latex) + '!\"';
+      funcs_latex = 'funcs=\"' + encodeURIComponent(funcs_latex) + '!\"';
       var xhr = new XMLHttpRequest();
       xhr.open("POST", 'http://localhost:8002/prove?' + rules_latex + '&' + funcs_latex, true);
 
       xhr.onload = function() {
         var resp = JSON.parse(this.responseText);
-        console.log(resp);
         if (resp['errorsF'] != '') {
           alert('Got errors in this functions\' declarations:\n' + resp.errorsF);
         } else if (resp['errorsR'] != '') {

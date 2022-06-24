@@ -1,8 +1,16 @@
-TRS = { Func '=' Func ';' } .
-Func = Name [ '(' Func | 'x' ')' ]
+TRS    = Params { Rules } .
+Rules  = Func '=' Func ';'
+Params = '{' NameParam [ ',' Params ] '}'
+Func   = ( NameFunc [ '(' Func" ')' ] ) | NameParam
+Func"  = Func [ ',' Func" ]
 
-Funcs = { Func ';' } .
-Func = Name '(' Sign ')' '=' Expr .
-E = T { '+' T } .
-T = F { '*' F } .
-F = ( num | 'x' | '(' E ')' ) [ '^' '{' E '}' ].
+Funcs = { F ';' } .
+F     = NameFunc '(' Sign ')' '=' E.
+Sign  = NameArg [ ',' Sign ]
+E     = T { '+' T } .
+T     = F { '*' F } .
+F     = ( num | 'x' | '(' E ')' ) [ '^' '{' E '}' ].
+
+
+
+31-47

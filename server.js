@@ -13,7 +13,8 @@ const requestListener = function (req, res) {
   const msg = _url.query;
   switch (_url.pathname) {
     case "/trs":
-      exec(__dirname + `/haskell/check-trs ${msg['rules']}`, (error, stdout, stderr) => {
+      console.log(msg['rules']);
+      exec(__dirname + `/haskell/provskell-exe 0 ${msg['rules']}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`);
           return;
@@ -32,7 +33,7 @@ const requestListener = function (req, res) {
       break
     case "/prove":
       console.log(msg);
-      exec(__dirname + `/haskell/provskell-exe ${msg['rules']} ${msg['funcs']}`, (error, stdout, stderr) => {
+      exec(__dirname + `/haskell/provskell-exe 1 ${msg['rules']} ${msg['funcs']}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`);
           return;
