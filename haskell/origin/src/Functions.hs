@@ -89,16 +89,23 @@ parse ars ts =
           _   -> (t:ts, fs)
 
     function :: [TXT.Exp] -> Map String Int -> Map String Function -> ([TXT.Exp], Map String Function)
-    function (t1@(TXT.EIdentifier f):t2@(EDelimited "(" ")" ts'):t3@(TXT.ESymbol Rel "="):ts) ars fs =
-      let s = map (fromRight (ENumber "0")) ts'
-      in let sign = if null s then [] else signature (map (fromRight (ENumber "0")) ts' ++ [ESymbol Pun ";"])
-        in
-          if sign /= ["err"] && checkSign (length sign) (T.unpack f) ars
-          then let (t':ts', ex) = expression ts sign
-            in case t' of
-              ESymbol Pun ";" -> (ts', Map.insert (T.unpack f) (Fn {sign=sign, expr=ex}) fs)
-              _ -> (toNextRule (t':ts'), Map.insert (T.unpack f) (Fn {sign=sign, expr=ErE $ show t'}) fs)
-          else (toNextRule ts, Map.insert (T.unpack f) (Fn {sign=["err"], expr=Param ""}) fs)
+    function (t1@(TXT.EIdentifier f):ts) ars fs =
+      let (t2:ts', fname) = functionName (t1:ts)
+      in case t2 of
+        EDelimited "(" ")" ts'' ->
+          let s = map (fromRight (ENumber "0")) ts''
+          in let sign = if null s then [] else signature (s ++ [ESymbol Pun ";"])
+            in
+              case head ts' of
+                TXT.ESymbol Rel "=" ->
+                  if sign /= ["err"] && checkSign (length sign) fname ars
+                  then let (t':ts''', ex) = expression (tail ts') sign
+                    in case t' of
+                      ESymbol Pun ";" -> (ts''', Map.insert fname (Fn {sign=sign, expr=ex}) fs)
+                      _ -> (toNextRule (t':ts'''), Map.insert fname (Fn {sign=sign, expr=ErE $ show t'}) fs)
+                  else (toNextRule ts, Map.insert fname (Fn {sign=["err"], expr=Param ""}) fs)
+                _ -> (toNextRule ts, Map.insert fname (Fn {sign=sign, expr=ErE $ show $ head ts'}) fs)
+        _ -> (toNextRule ts, Map.insert fname (Fn {sign=[], expr=ErE $ show t2}) fs)
 
     function ts _ fs = (toNextRule ts, fs)
 
@@ -170,6 +177,12 @@ parse ars ts =
               let ((_, ex'), (_, up')) = (expression [ex, ESymbol Pun ";"] ar, expression [up, ESymbol Pun ";"] ar)
               in (ts, checkErr (Exp ex' up') ex' up')
         _ -> (t:ts, ErE $ show t)
+
+    functionName :: [TXT.Exp] -> ([TXT.Exp], String)
+    functionName (t@(TXT.EIdentifier a):ts) =
+      let (ts', nm) = functionName ts
+      in (ts', T.unpack a ++ nm)
+    functionName ts = (ts, "")
 
     checkErr :: Expr -> Expr -> Expr -> Expr
     checkErr orig lhs rhs

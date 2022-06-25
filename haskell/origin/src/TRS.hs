@@ -136,21 +136,22 @@ formRules (t:ts) =
             _ -> (toNextRule ts', Left (show t'), ars')
 
     function :: [TXT.Exp] -> Map String Int -> Set String -> ([TXT.Exp], Func, Map String Int)
-    function (t1:ts) ars ps =
+    function ts'@(t1:_) ars ps =
       case t1 of
         TXT.EIdentifier a ->
-          if Set.notMember (T.unpack a) ps
-          then case head ts of
-            EDelimited "(" ")" ts' -> let (tsbr, funcs, ars') = function' (map (fromRight (ENumber "0")) ts' ++ [ESymbol Pun ";"]) ars ps []
-              in
-                case head tsbr of
-                  ESymbol Pun ";" ->
-                    if strNull $ hasError funcs
-                    then (tail ts, checkFunc (F (T.unpack a) funcs) ars', Map.insert (T.unpack a) (length funcs) ars')
-                    else (ts, ErF (hasError funcs), ars')
-                  _ -> (ts, ErF $ show (head tsbr), ars')
-            _ -> (ts, checkFunc (C (T.unpack a)) ars, Map.insert (T.unpack a) 0 ars)
-          else (ts, P (T.unpack a), ars)
+          let (ts, fname) = functionName ts'
+          in if Set.notMember fname ps
+            then case head ts of
+              EDelimited "(" ")" ts' -> let (tsbr, funcs, ars') = function' (map (fromRight (ENumber "0")) ts' ++ [ESymbol Pun ";"]) ars ps []
+                in
+                  case head tsbr of
+                    ESymbol Pun ";" ->
+                      if strNull $ hasError funcs
+                      then (tail ts, checkFunc (F fname funcs) ars', Map.insert fname (length funcs) ars')
+                      else (ts, ErF (hasError funcs), ars')
+                    _ -> (ts, ErF $ show (head tsbr), ars')
+              _ -> (ts, checkFunc (C fname) ars, Map.insert fname 0 ars)
+            else (ts, (P fname), ars)
         _ -> (t1:ts, ErF $ show t1, ars)
 
     function' :: [TXT.Exp] -> Map String Int -> Set String -> [Func] -> ([TXT.Exp], [Func], Map String Int)
@@ -161,6 +162,11 @@ formRules (t:ts) =
           ESymbol Pun "," -> function' ts' ars' ps $ fs ++ [func]
           _ -> (t':ts', fs ++ [func], ars')
 
+    functionName :: [TXT.Exp] -> ([TXT.Exp], String)
+    functionName (t@(TXT.EIdentifier a):ts) =
+      let (ts', nm) = functionName ts
+      in (ts', T.unpack a ++ nm)
+    functionName ts = (ts, "")
 
     checkFunc :: Func -> Map String Int -> Func
     checkFunc f m =

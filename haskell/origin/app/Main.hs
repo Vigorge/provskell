@@ -19,8 +19,8 @@ main = do
       let (rules, arity, params) = processTRS trsArg
         in let funcs = F.processF (head other) arity
           in if null $ F.incorrect funcs
-          then BS.putStrLn $ P.processProve rules funcs params
-          else BS.putStrLn $ F.processInc funcs
+            then BS.putStrLn $ P.processProve rules funcs params
+            else BS.putStrLn $ F.processInc funcs
     "2" -> BS.putStrLn $ C.processCalc trsArg
 
 {-
