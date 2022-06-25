@@ -1,5 +1,6 @@
 var TRS_changed  = false;
 var Calc_changed = false;
+var N = 1;
 var ruleCount = 0;
 var signMathFieldSpan = document.getElementById(`rules-sign-math-field`);
 var signMathFieldSpan = MQ.MathField(signMathFieldSpan, {spaceBehavesLikeTab: true});
@@ -79,7 +80,7 @@ function createRule(elemId, rule) {
 
 function createFormula(elemId, arity) {
   var container = document.createElement('div');
-  var param = arity === 0 ? '' : `( <span style="overflow:auto;width:10%;font-size:16px" class="mq-args" id="formula-sign-math-field-${elemId}"></span> )`
+  var param = arity === 0 ? '' : `( <span style="overflow:auto;width:20%;font-size:16px" class="mq-args" id="formula-sign-math-field-${elemId}"></span> )`
   container.innerHTML = `<li style="font-size:20px" id = "func-${elemId}">
     ${elemId}${param} = <span style="overflow:auto;width:60%;font-size:16px" class="mq-func" id="formula-math-field-${elemId}"></span>
   </li>`
@@ -91,9 +92,28 @@ function createFuncHeader() {
   var td_funcs = document.getElementById('td_functions');
   td_funcs.innerHTML = `<div><input type="button" value="Submit Functions" onclick="checkTerminationButton()"></div>
     <button id="add-omega">\u03C9</button>
+    <p>N: <span id="counter">1</span></p>
+    <button onclick="incrementCounter()">+</button>
+    <button onclick="decrementCounter()">-</button>
     <ol id="formulas" style="list-style: none;">
     </ol>`
   return
+}
+
+function incrementCounter() {
+  const counterElem = document.getElementById('counter');
+  count = Number(counterElem.innerHTML);
+  counterElem.innerHTML = count+1;
+  N = N + 1;
+}
+
+function decrementCounter() {
+  if (N > 1) {
+    const counterElem = document.getElementById('counter');
+    count = Number(counterElem.innerHTML);
+    counterElem.innerHTML = count-1;
+    N = N - 1;
+  }
 }
 
 function addDeleteOnClick(ruleElem) {
@@ -324,6 +344,16 @@ function checkTerminationButton() {
         return;
       }
       if (/[\^\{\}\(\)\\x0-9 ]|(\\omega)|(\\cdot)/.test(latex) || /[^a-zA-Z,\\]/i.test(latex_sign)) {
+        if (N == 1) {
+          if (latex_sign != '') {
+            latex_sign_elems = latex_sign.split(',');
+            latex_sign = '\\left(' + latex_sign_elems[0] + '\\right)';
+            for (let j = 1; j < latex_sign_elems.length; j++) {
+              latex_sign = latex_sign + ',\\left(' + latex_sign_elems[j] + '\\right)'
+            }
+          }
+          latex_func = '\\left(' + latex_func + '\\right)'
+        }
         funcs_latex = funcs_latex + f_name + '\\left(' + latex_sign + '\\right)' + '=' + latex_func + ';';
       } else {
         inc_funcs.push(f_name);
@@ -336,7 +366,7 @@ function checkTerminationButton() {
       rules_latex = 'rules=\"' + encodeURIComponent(rules_latex) + '!\"';
       funcs_latex = 'funcs=\"' + encodeURIComponent(funcs_latex) + '!\"';
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", 'http://localhost:8002/prove?' + rules_latex + '&' + funcs_latex, true);
+      xhr.open("POST", 'http://localhost:8002/prove?' + rules_latex + '&' + funcs_latex + '&' + `n=${N}`, true);
 
       xhr.onload = function() {
         var resp = JSON.parse(this.responseText);

@@ -23,6 +23,7 @@ import Data.Data
 import Data.ByteString.Lazy.Char8 as BS hiding (tail, map, head, null, elem, length)
 import Data.Aeson as JSON
 import GHC.Generics
+import Data.List
 
 data Expr = Param String
           | Val Omega
@@ -41,7 +42,7 @@ instance Show Expr where
       treeShow pref (Sum v1 v2) = pref ++ "╷――――" ++ treeShow (pref ++ "│ ") v1 ++ pref ++ "├─ +" ++ treeShow (pref ++ "│ ") v2 ++ pref ++ "╵――――"
       treeShow pref (Exp v1 v2) = pref ++ "╷――――" ++ treeShow (pref ++ "│ ") v1 ++ pref ++ "├─ ^" ++ treeShow (pref ++ "│ ") v2 ++ pref ++ "╵――――"
 
-data Function = Fn {sign::[String], expr::Expr}
+data Function = Fn {sign::[[String]], expr::[Expr]}
 instance Show Function where
   show fn@(Fn sign expr)= show sign ++ "\n" ++ show expr
 
@@ -63,33 +64,33 @@ formOutput fs = JSON.encode $ Output (getErrors fs) ""
   where
     getErrors :: [(String, Function)] -> String
     getErrors [] = ""
-    getErrors (r@(n, Fn {sign=_ ,expr=ErE er}):rs) = show n ++ ": " ++ er ++ "\n" ++ getErrors rs
-    getErrors (r@(n, Fn {sign=["err"] ,expr=_}):rs) = show n ++ ": error in signature\n" ++ getErrors rs
+    getErrors (r@(n, Fn {sign=_ ,expr=[ErE er]}):rs) = show n ++ ": " ++ er ++ "\n" ++ getErrors rs
+    getErrors (r@(n, Fn {sign=[["err"]] ,expr=_}):rs) = show n ++ ": error in signature\n" ++ getErrors rs
 
 incorrect :: Map String Function -> [(String, Function)]
-incorrect fs = [x | x@(_, Fn {sign=_ ,expr=ErE {}}) <- Map.assocs fs] ++ [x | x@(_, Fn {sign=["err"] ,expr=_}) <- Map.assocs fs]
+incorrect fs = [x | x@(_, Fn {sign=_ ,expr=[ErE {}]}) <- Map.assocs fs] ++ [x | x@(_, Fn {sign=[["err"]] ,expr=_}) <- Map.assocs fs]
 
-processF :: String -> Map String Int -> Map String Function
-processF str ars = parse ars $ fromRight [ENumber "0"] $ readTeX $ T.pack str
+processF :: String -> Map String Int -> Integer -> Map String Function
+processF str ars dim = parse dim ars $ fromRight [ENumber "0"] $ readTeX $ T.pack str
 
-parse :: Map String Int -> [TXT.Exp] -> Map String Function
-parse ars ts =
-  let (t':ts', fs) = functions ts ars Map.empty
+parse :: Integer -> Map String Int -> [TXT.Exp] -> Map String Function
+parse dim ars ts =
+  let (t':ts', fs) = functions dim ts ars Map.empty
   in
     case t' of
       ESymbol Ord "!" -> fs
       _ -> error $ "incorrect syntax: " ++ show t'
   where
-    functions :: [TXT.Exp] -> Map String Int -> Map String Function -> ([TXT.Exp], Map String Function)
-    functions (t:ts) ars fs =
+    functions :: Integer -> [TXT.Exp] -> Map String Int -> Map String Function -> ([TXT.Exp], Map String Function)
+    functions dim (t:ts) ars fs =
         case t of
           TXT.EIdentifier a ->
-            let (ts', fs') = function (t:ts) ars fs
-            in functions ts' ars fs'
+            let (ts', fs') = function dim (t:ts) ars fs
+            in functions dim ts' ars fs'
           _   -> (t:ts, fs)
 
-    function :: [TXT.Exp] -> Map String Int -> Map String Function -> ([TXT.Exp], Map String Function)
-    function (t1@(TXT.EIdentifier f):ts) ars fs =
+    function :: Integer -> [TXT.Exp] -> Map String Int -> Map String Function -> ([TXT.Exp], Map String Function)
+    function dim (t1@(TXT.EIdentifier f):ts) ars fs =
       let (t2:ts', fname) = functionName (t1:ts)
       in case t2 of
         EDelimited "(" ")" ts'' ->
@@ -98,24 +99,39 @@ parse ars ts =
             in
               case head ts' of
                 TXT.ESymbol Rel "=" ->
-                  if sign /= ["err"] && checkSign (length sign) fname ars
-                  then let (t':ts''', ex) = expression (tail ts') sign
+                  if sign /= [["err"]] && checkSign (length sign) fname ars
+                  then let (t':ts''', exs) = expressions (tail ts') sign
                     in case t' of
-                      ESymbol Pun ";" -> (ts''', Map.insert fname (Fn {sign=sign, expr=ex}) fs)
-                      _ -> (toNextRule (t':ts'''), Map.insert fname (Fn {sign=sign, expr=ErE $ show t'}) fs)
-                  else (toNextRule ts, Map.insert fname (Fn {sign=["err"], expr=Param ""}) fs)
-                _ -> (toNextRule ts, Map.insert fname (Fn {sign=sign, expr=ErE $ show $ head ts'}) fs)
-        _ -> (toNextRule ts, Map.insert fname (Fn {sign=[], expr=ErE $ show t2}) fs)
+                      ESymbol Pun ";" ->
+                        if (genericLength exs :: Integer) == dim
+                        then (ts''', Map.insert fname (Fn {sign=sign, expr=exs}) fs)
+                        else (ts''', Map.insert fname (Fn {sign=sign, expr=[ErE "doesn't correspond to n"]}) fs)
+                      _ -> (toNextRule (t':ts'''), Map.insert fname (Fn {sign=sign, expr=[ErE $ show t']}) fs)
+                  else (toNextRule ts, Map.insert fname (Fn {sign=[["err"]], expr=[Param ""]}) fs)
+                _ -> (toNextRule ts, Map.insert fname (Fn {sign=sign, expr=[ErE $ show $ head ts']}) fs)
+        _ -> (toNextRule ts, Map.insert fname (Fn {sign=[[]], expr=[ErE "no signature"]}) fs)
 
-    function ts _ fs = (toNextRule ts, fs)
+    function _ ts _ fs = (toNextRule ts, fs)
 
-    signature :: [TXT.Exp] -> [String]
-    signature (t:ts) =
+    signature :: [TXT.Exp] -> [[String]]
+    signature (t1@(EDelimited "(" ")" ts'):t2@(ESymbol Pun ","):ts) =
+      let sgn = signature' (map (fromRight (ENumber "0")) ts' ++ [ESymbol Pun ";"])
+      in if sgn == ["err"]
+        then [sgn]
+        else let sgns = signature ts
+          in if sgns == [["err"]] then sgns else sgn:sgns
+    signature [t1@(EDelimited "(" ")" ts'), t2@(ESymbol Pun ";")] =
+      let sgn = signature' (map (fromRight (ENumber "0")) ts' ++ [ESymbol Pun ";"])
+      in [sgn]
+    signature _ = [["err"]]
+
+    signature' :: [TXT.Exp] -> [String]
+    signature' (t:ts) =
       case t of
         TXT.EIdentifier a ->
           case head ts of
             ESymbol Pun "," ->
-              let tl = signature (tail ts)
+              let tl = signature' (tail ts)
               in
                 if tl == ["err"]
                 then tl
@@ -124,21 +140,44 @@ parse ars ts =
             _ -> ["err"]
         _ -> ["err"]
 
-    expression :: [TXT.Exp] -> [String] -> ([TXT.Exp], Expr)
+    expressions :: [TXT.Exp] -> [[String]] -> ([TXT.Exp], [Expr])
+    expressions (t1@(EDelimited "(" ")" ts'):ts) ar =
+      let (tsbr, exs) = expressions' (map (fromRight (ENumber "0")) ts' ++ [ESymbol Pun ";"]) ar
+      in if head tsbr == ESymbol Pun ";"
+        then (ts, exs)
+        else (ts, [ErE $ show $ head tsbr])
+    expressions ts _ = (ts, [])
+
+    expressions' :: [TXT.Exp] -> [[String]] -> ([TXT.Exp], [Expr])
+    expressions' ts ar =
+      let (ts', ex) = expression ts ar
+      in
+        case ex of
+          ErE _ -> (ts', [ex])
+          _ ->
+            case head ts' of
+              ESymbol Pun "," ->
+                let (ts'', exs) = expressions' (tail ts') ar
+                in case head exs of
+                  ErE _ -> (ts'', exs)
+                  _ -> (ts'', ex:exs)
+              _ -> (ts', [ex])
+
+    expression :: [TXT.Exp] -> [[String]] -> ([TXT.Exp], Expr)
     expression ts ar =
       let (t':ts', lterm) = term ts ar
       in if isSum t'
         then expression' (t':ts') ar lterm
         else (t':ts', lterm)
 
-    expression' :: [TXT.Exp] -> [String] -> Expr -> ([TXT.Exp], Expr)
+    expression' :: [TXT.Exp] -> [[String]] -> Expr -> ([TXT.Exp], Expr)
     expression' (t:ts) ar lterm =
       if isSum t
       then let (ts', rterm) = term ts ar
         in expression' ts' ar (checkErr (Sum lterm rterm) lterm rterm)
       else (t:ts, lterm)
 
-    term :: [TXT.Exp] -> [String]-> ([TXT.Exp], Expr)
+    term :: [TXT.Exp] -> [[String]] -> ([TXT.Exp], Expr)
     term [] _ = ([], ErE "error in (...)")
     term ts ar =
       let (t':ts', lfactor) = factor ts ar
@@ -146,14 +185,14 @@ parse ars ts =
         then term' (t':ts') ar lfactor
         else (t':ts', lfactor)
 
-    term' :: [TXT.Exp] -> [String] -> Expr -> ([TXT.Exp], Expr)
+    term' :: [TXT.Exp] -> [[String]] -> Expr -> ([TXT.Exp], Expr)
     term' (t:ts) ar lfactor =
       if isMul t
       then let (ts', rfactor) = factor ts ar
         in term' ts' ar (checkErr (Mul lfactor rfactor) lfactor rfactor)
       else (t:ts, lfactor)
         
-    factor :: [TXT.Exp] -> [String]-> ([TXT.Exp], Expr)
+    factor :: [TXT.Exp] -> [[String]] -> ([TXT.Exp], Expr)
     factor [] _ = ([], ErE "error in (...)")
     factor (t:ts) ar =
       case t of
@@ -162,7 +201,7 @@ parse ars ts =
         TXT.EIdentifier "\969" ->
           (ts, Val $ w 1)
         TXT.EIdentifier a ->
-          if T.unpack a `elem` ar
+          if T.unpack a `elem` Prelude.concat ar
           then (ts, Param (T.unpack a))
           else (t:ts, ErE "undefined parametr")
         TXT.EDelimited "(" ")" ts' ->

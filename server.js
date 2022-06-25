@@ -33,7 +33,7 @@ const requestListener = function (req, res) {
       break
     case "/prove":
       console.log(msg);
-      exec(__dirname + `/haskell/provskell-exe 1 ${msg['rules']} ${msg['funcs']}`, (error, stdout, stderr) => {
+      exec(__dirname + `/haskell/provskell-exe 1 ${msg['rules']} ${msg['funcs']} ${msg['n']}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`);
           return;
