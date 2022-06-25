@@ -6,7 +6,7 @@
 <script>var MQ = MathQuill.getInterface(2)</script>
 </head>
 <body>
-	<h2 align="center">Provskell v0.0.1</h2>
+	<h2 align="center">Provskell v0.1.1</h2>
 	<table border="0" style="table-layout: fixed; width: 100%">
 		<colgroup>
 			<col span="1" style="table-layout: fixed; width: 25%;">
@@ -16,20 +16,39 @@
 
 	  <tr style="vertical-align:top">
     	<td>
-        <h3>Term Rewriting System:</h3>
-        <input type="button" value="Submit TRS" onclick="formulaInputButton()">
-				<div style="font-size:20px">Parametrs: { <span style="font-size:16px" class="mq-params" id="rules-sign-math-field"></span> }</div>
+        <h3 style="font-size:24px">Term Rewriting System:</h3>
       </td>
-      <td id="td_functions">
+      <td style="background-color:#f7fafc;">
+				<h3 style="font-size:24px">Proving Functions:</h3>
+      </td>
+			<td>
+				<h3 style="font-size:24px">Examples:</h3>
       </td>
     </tr>
 	  <tr style="vertical-align:top">
     	<td>
-	      <ol style="overflow:auto;height:200px" id="rules" start="1">
+				<input type="button" value="Submit TRS" onclick="formulaInputButton()">
+				<div style="font-size:20px">Parametrs: { <span style="font-size:16px" class="mq-params" id="rules-sign-math-field"></span> }</div>
+	      <ol style="overflow:auto;height:250px" id="rules" start="1">
 	      </ol>
      	</td>
-    	<td>
-    	  <ol id="formulas" style="list-style: none;">
+    	<td style="background-color:#f7fafc;" id="td_functions">
+      </td>
+			<td>
+    	  <ol style="overflow:auto;height:300px;width:40%" id="examples">
+					<li style="font-size:20px">
+						<param name="params" value="x">
+						<br><span class="mq-ex">f(x)=g(f(x))</span><br>
+						<span class="mq-ex">f(Z)=Z</span><br>
+						<input type="button" value="Select" onclick="insertExample(0)">
+					</li>
+					<li style="font-size:20px">
+						<param name="params" value="x,y">
+						<br><span class="mq-ex">f(Z,x)=x</span><br>
+						<span class="mq-ex">f(s(x),Z)=f(x,s(Z))</span><br>
+						<span class="mq-ex">f(s(x),s(y))=f(x,f(s(x),y))</span><br>
+						<input type="button" value="Select" onclick="insertExample(1)">
+					</li>
 	      </ol>
       </td>
   	</tr>
@@ -40,6 +59,7 @@
 				<span style="overflow:auto;width:60%;font-size:20px" class="mq-calc" id="calc-math-field"></span>
 				<div style="font-size:20px"> = <span id="calc-result-math-field"></span></div>
 			</td>
+			<td></td>
 		</tr>
 	</table>
 </body>

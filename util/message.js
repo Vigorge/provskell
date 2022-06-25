@@ -3,7 +3,7 @@ var Calc_changed = false;
 var ruleCount = 0;
 var signMathFieldSpan = document.getElementById(`rules-sign-math-field`);
 var signMathFieldSpan = MQ.MathField(signMathFieldSpan, {spaceBehavesLikeTab: true});
-addRuleButton();
+addRuleButton("");
 
 // window.addEventListener('beforeunload', function (e) {
 //     e.preventDefault();
@@ -69,10 +69,10 @@ function calc() {
   xhr.send();
 }
 
-function createRule(elemId) {
+function createRule(elemId, rule) {
   var container = document.createElement('div');
   container.innerHTML = `<li style="font-size:20px" id = "rule-${elemId}">
-    <input class="formula-delete" type="button" value="X"/> Rule: <span style="overflow:auto;width:60%;font-size:16px" class="mq-rule" id="rule-math-field-${elemId}"></span>
+    <input class="formula-delete" type="button" value="X"/> Rule: <span style="overflow:auto;width:60%;font-size:16px" class="mq-rule" id="rule-math-field-${elemId}">${rule}</span>
     </li>`
   return container.firstChild
 }
@@ -89,9 +89,10 @@ function createFormula(elemId, arity) {
 
 function createFuncHeader() {
   var td_funcs = document.getElementById('td_functions');
-  td_funcs.innerHTML = `<h3>Proving Functions:</h3>
-    <div><input type="button" value="Submit Functions" onclick="checkTerminationButton()"></div>
-    <button id="add-omega">\u03C9</button>`
+  td_funcs.innerHTML = `<div><input type="button" value="Submit Functions" onclick="checkTerminationButton()"></div>
+    <button id="add-omega">\u03C9</button>
+    <ol id="formulas" style="list-style: none;">
+    </ol>`
   return
 }
 
@@ -105,11 +106,26 @@ function addDeleteOnClick(ruleElem) {
   }
 }
 
-function addRuleButton() {
+function insertExample(exId) {
+  var example = document.getElementById('examples').getElementsByTagName('li')[exId];
+  var rulesEx = example.getElementsByClassName("mq-ex");
+  var params = example.getElementsByTagName('param')[0].value;
+  document.getElementById("rules-sign-math-field").textContent = params;
+  MQ.MathField(document.getElementById("rules-sign-math-field"), {spaceBehavesLikeTab: true});
+
+  var rules = document.getElementById('rules');
+  rules.innerHTML = '';
+  for (let i = 0; i < rulesEx.length; i++) {
+    addRuleButton(rulesEx[i].textContent);
+  }
+  formulaInputButton();
+}
+
+function addRuleButton(ruleText) {
   var rules = document.getElementById('rules');
   var elemId = ruleCount;
   ruleCount += 1;
-  var ruleElem = createRule(elemId);
+  var ruleElem = createRule(elemId, ruleText);
 
   rules.appendChild(ruleElem);
   addDeleteOnClick(ruleElem);
@@ -122,7 +138,7 @@ function addRuleButton() {
         TRS_changed = true;
       },
       enter: function() {
-        addRuleButton();
+        addRuleButton("");
       },
       upOutOf: function(mathField) {
         var rules = Array.prototype.slice.call(document.getElementById('rules').children);
@@ -201,9 +217,6 @@ function formulaInputButton() {
   var rules = document.getElementById('rules').getElementsByTagName('li');
   var rules_lenght = rules.length;
 
-  var formulas = document.getElementById('formulas');
-  formulas.innerHTML = '';
-
   var params =  MQ((document.getElementsByClassName("mq-params"))[0]);
   var latexParams = params.latex();
   if (/[^a-zA-Z,\\]/i.test(latexParams)) {
@@ -241,6 +254,9 @@ function formulaInputButton() {
           var funcs = resp.funcs;
 
           createFuncHeader();
+
+          var formulas = document.getElementById('formulas');
+          formulas.innerHTML = '';
 
           document.getElementById("add-omega").onmousedown = function () {
             event.preventDefault();
