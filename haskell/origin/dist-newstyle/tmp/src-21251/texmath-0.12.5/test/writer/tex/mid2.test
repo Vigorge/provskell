@@ -1,7 +1,0 @@
-<<< native
-[ ESymbol Rel "\8739"
-, EFraction NormalFrac (EIdentifier "H") (EIdentifier "K")
-, ESymbol Rel "\8739"
-]
->>> tex
-\mid \frac{H}{K} \mid

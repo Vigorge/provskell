@@ -1,7 +1,0 @@
-<<< native
-[ ESuper (ENumber "2") (ENumber "5")
-, ESymbol Bin "+"
-, EIdentifier "x"
-]
->>> eqn
-2 sup 5 + x

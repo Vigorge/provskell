@@ -1,4 +1,0 @@
-<<< native
-[ ESqrt (ENumber "2") ]
->>> eqn
-sqrt 2

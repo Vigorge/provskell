@@ -240,7 +240,7 @@ function formulaInputButton() {
   var params =  MQ((document.getElementsByClassName("mq-params"))[0]);
   var latexParams = params.latex();
   if (/[^a-zA-Z,\\]/i.test(latexParams)) {
-    alert(`parametrs has forbidden symbols`);
+    alert(`parameters has forbidden symbols`);
     return;
   }
   var rules_latex = '\\left\\{' + latexParams + '\\right\\}';
@@ -361,7 +361,7 @@ function checkTerminationButton() {
     }
 
     if (inc_funcs.length > 0) {
-      alert(`Functions: ${inc_funcs}\n or its' signatures has forbidden symbols`);
+      alert(`Functions: ${inc_funcs}\n : forbidden symbols in the definitions`);
     } else {
       rules_latex = 'rules=\"' + encodeURIComponent(rules_latex) + '!\"';
       funcs_latex = 'funcs=\"' + encodeURIComponent(funcs_latex) + '!\"';
@@ -371,11 +371,11 @@ function checkTerminationButton() {
       xhr.onload = function() {
         var resp = JSON.parse(this.responseText);
         if (resp['errorsF'] != '') {
-          alert('Got errors in this functions\' declarations:\n' + resp.errorsF);
+          alert('Syntax errors in the following functions:\n' + resp.errorsF);
         } else if (resp['errorsR'] != '') {
-          alert('Next rules does not satisfy termination criteria:\n' + resp.errorsR);
+          alert('The following rules does not satisfy the termination criterion:\n' + resp.errorsR);
         } else {
-          alert('TRS terminate!');
+          alert('The given interpretation proves termination of the TRS!');
         }
       };
 

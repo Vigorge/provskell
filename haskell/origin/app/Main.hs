@@ -23,5 +23,3 @@ main = do
               then BS.putStrLn $ P.processProve (read dimArg :: Integer) rules funcs params
               else BS.putStrLn $ F.processInc funcs
     "2" -> BS.putStrLn $ C.processCalc trsArg
-
- {-mapM_ print (P.formVariants ["x", "y"] $ List.permutations (formDimParams 2 ["x", "y"]))-}

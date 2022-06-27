@@ -1,7 +1,0 @@
-<<< native
-[ ESub (EIdentifier "A") (EIdentifier "B")
-, ESymbol Rel "="
-, ESub (EIdentifier "A") (EIdentifier "B")
-]
->>> tex
-A_{B} = A_{B}

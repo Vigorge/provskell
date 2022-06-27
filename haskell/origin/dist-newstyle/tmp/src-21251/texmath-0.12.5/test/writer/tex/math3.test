@@ -1,4 +1,0 @@
-<<< native
-[ ENumber "2" , EIdentifier "x" ]
->>> tex
-2x

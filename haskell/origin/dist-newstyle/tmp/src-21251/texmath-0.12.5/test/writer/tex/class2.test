@@ -1,4 +1,0 @@
-<<< native
-[ EFraction NormalFrac (EIdentifier "x") (ENumber "2") ]
->>> tex
-\frac{x}{2}

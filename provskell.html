@@ -28,7 +28,7 @@
 	  <tr style="vertical-align:top">
     	<td>
 				<input type="button" value="Submit TRS" onclick="formulaInputButton()">
-				<div style="font-size:20px">Parametrs: { <span style="font-size:16px" class="mq-params" id="rules-sign-math-field"></span> }</div>
+				<div style="font-size:20px">Parameters: { <span style="font-size:16px" class="mq-params" id="rules-sign-math-field"></span> }</div>
 	      <ol style="overflow:auto;height:250px" id="rules" start="1">
 	      </ol>
      	</td>
@@ -38,7 +38,7 @@
     	  <ol style="overflow:auto;height:300px;width:50%" id="examples">
 					<li style="font-size:20px">
 						<param name="params" value="x">
-						<br><span class="mq-ex">f(x)=g(f(x))</span><br>
+						<br><span class="mq-ex">f(g(x))=g(ff((x)))</span><br>
 						<span class="mq-ex">f(Z)=Z</span><br>
 						<input type="button" value="Select" onclick="insertExample(0)">
 					</li>
@@ -54,6 +54,22 @@
 						<br><span class="mq-ex">p(u(x),u(y))=u(p(x,y))</span><br>
 						<span class="mq-ex">p(p(x,y),z)=p(x,p(y,z))</span><br>
 						<input type="button" value="Select" onclick="insertExample(2)">
+					</li>
+					<li style="font-size:20px">
+						<param name="params" value="x,y,z">
+						<br><span class="mq-ex">a(s(x),y)=s(a(x,y))</span><br>
+						<span class="mq-ex">m(s(x),y)=a(m(x,y),y))</span><br>
+						<span class="mq-ex">a(Z,x)=x</span><br>
+						<span class="mq-ex">m(Z,x)=Z</span><br>
+						<input type="button" value="Select" onclick="insertExample(3)">
+					</li>
+					<li style="font-size:20px">
+						<param name="params" value="x,y,z">
+						<br><span class="mq-ex">n(o(x,y))=a(n(x),n(y))</span><br>
+						<span class="mq-ex">n(a(x,y))=o(n(x),n(y))</span><br>
+						<span class="mq-ex">a(x,o(y,z))=o(a(x,y),a(x,z))</span><br>
+						<span class="mq-ex">n(n(x))=x</span><br>
+						<input type="button" value="Select" onclick="insertExample(4)">
 					</li>
 	      </ol>
       </td>

@@ -1,7 +1,0 @@
-<<< native
-[ ESuper (ENumber "2") (ENumber "5")
-, ESymbol Bin "+"
-, EIdentifier "x"
-]
->>> tex
-2^{5} + x

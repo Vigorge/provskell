@@ -1,7 +1,0 @@
-<<< native
-[ EFraction NormalFrac (ENumber "2") (EIdentifier "x")
-, ESymbol Rel "="
-, EFraction NormalFrac (ENumber "2") (EIdentifier "x")
-]
->>> tex
-\frac{2}{x} = \frac{2}{x}

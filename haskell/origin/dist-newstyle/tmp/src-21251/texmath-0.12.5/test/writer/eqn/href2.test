@@ -1,4 +1,0 @@
-<<< native
-[ EIdentifier "\960" , ESymbol Bin "+" , ENumber "1" ]
->>> eqn
-pi + 1

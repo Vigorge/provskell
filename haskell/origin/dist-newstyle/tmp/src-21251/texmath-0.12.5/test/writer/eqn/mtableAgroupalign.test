@@ -1,6 +1,0 @@
-<<< native
-[ EArray [ AlignCenter ] [ [ [ EIdentifier "x" ] ] ] ]
->>> eqn
-matrix{
-ccol{ x }
-}

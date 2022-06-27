@@ -1,4 +1,0 @@
-<<< native
-[ ESuper (EIdentifier "x") (ENumber "2") ]
->>> tex
-x^{2}

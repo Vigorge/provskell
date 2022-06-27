@@ -1,9 +1,0 @@
-<<< native
-[ EDelimited
-    "{"
-    "}"
-    [ Right (EFraction NoLineFrac (EIdentifier "x") (EIdentifier "y"))
-    ]
-]
->>> tex
-\genfrac{\{}{\}}{0pt}{}{x}{y}

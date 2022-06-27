@@ -1,9 +1,0 @@
-<<< tex
- \frac {a}{b}\  \tfrac {a}{b}
-
-
->>> native
-[ EFraction NormalFrac (EIdentifier "a") (EIdentifier "b")
-, ESpace (2 % 9)
-, EFraction InlineFrac (EIdentifier "a") (EIdentifier "b")
-]

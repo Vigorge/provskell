@@ -1,4 +1,0 @@
-<<< native
-[ EFraction NormalFrac (ENumber "1") (EIdentifier "x") ]
->>> eqn
-1 over x

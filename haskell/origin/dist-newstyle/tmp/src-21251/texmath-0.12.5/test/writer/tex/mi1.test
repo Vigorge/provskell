@@ -1,7 +1,0 @@
-<<< native
-[ EIdentifier "x"
-, ESymbol Bin "+"
-, EGrouped [ EIdentifier "a" , ESymbol Ord "/" , EIdentifier "b" ]
-]
->>> tex
-x + {a/b}

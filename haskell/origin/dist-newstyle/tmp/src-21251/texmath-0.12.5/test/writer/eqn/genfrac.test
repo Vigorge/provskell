@@ -1,9 +1,0 @@
-<<< native
-[ EDelimited
-    "{"
-    "}"
-    [ Right (EFraction NoLineFrac (EIdentifier "x") (EIdentifier "y"))
-    ]
-]
->>> eqn
-left { x / y right }

@@ -1,8 +1,0 @@
-<<< native
-[ ENumber "2"
-, ESymbol Bin "+"
-, EGrouped
-    [ ENumber "3" , ESymbol Ord "\8290" , EIdentifier "\8520" ]
-]
->>> tex
-2 + {3{\mathbb{i}}}

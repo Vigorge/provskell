@@ -1,7 +1,0 @@
-<<< native
-[ EIdentifier "x"
-, EOver False (ESymbol Accent "\8594") (EText TextNormal "maps to")
-, EIdentifier "y"
-]
->>> tex
-x\overset{\text{maps\ to}}{\rightarrow}y

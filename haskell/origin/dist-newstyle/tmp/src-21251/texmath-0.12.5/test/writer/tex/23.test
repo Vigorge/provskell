@@ -1,4 +1,0 @@
-<<< native
-[ ENumber "1" , ESymbol Ord "." ]
->>> tex
-1.

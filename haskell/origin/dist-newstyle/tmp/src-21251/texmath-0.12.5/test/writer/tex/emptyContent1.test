@@ -1,4 +1,0 @@
-<<< native
-[ ESub (ENumber "") (EMathOperator "") ]
->>> tex
-_{\operatorname{}}

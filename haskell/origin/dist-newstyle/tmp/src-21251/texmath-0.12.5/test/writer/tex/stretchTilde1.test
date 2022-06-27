@@ -1,4 +1,0 @@
-<<< native
-[ EOver False (EIdentifier "caledonia") (ESymbol Accent "\732") ]
->>> tex
-\widetilde{caledonia}
